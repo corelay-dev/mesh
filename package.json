@@ -6,7 +6,8 @@
   "license": "MIT",
   "author": "Corelay Ltd",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "build": "turbo run build",

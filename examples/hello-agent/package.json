@@ -1,0 +1,18 @@
+{
+  "name": "@loom-examples/hello-agent",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Minimal Corelay Mesh example: one agent, real OpenAI, prints a reply.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@corelay/mesh-core": "0.0.1",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}
