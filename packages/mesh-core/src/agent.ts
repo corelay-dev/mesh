@@ -7,12 +7,26 @@ import type { Peer } from "./peer.js";
 import type { PeerRegistry } from "./peer-registry.js";
 
 /**
+ * Raised when an Agent tries to send a message to a peer address it does not
+ * have a PeerCapability for. Stops accidental or malicious cross-peer sends.
+ */
+export class CapabilityError extends Error {
+  constructor(
+    public readonly agent: Address,
+    public readonly target: Address,
+  ) {
+    super(`Agent ${agent} has no peer capability for ${target}`);
+    this.name = "CapabilityError";
+  }
+}
+
+/**
  * Agent — a peer that receives messages via its Inbox, calls the LLM, and
  * delivers the reply back to the sender through the PeerRegistry.
  *
- * Day 4: replies route through the PeerRegistry instead of being stashed on
- * the agent. This is the first step toward multi-agent coordination — an
- * agent can now reply to any other registered peer.
+ * Every outbound peer message is checked against the agent's declared
+ * capabilities. The agent may only send to addresses explicitly granted via
+ * a `PeerCapability`.
  *
  * Still deliberately minimal: no tool calls, no memory, no critic, no
  * learnings. Those arrive as separate primitives in later weeks.
@@ -54,6 +68,14 @@ export class Agent implements Peer {
       createdAt: Date.now(),
     };
 
+    this.assertPeerAllowed(reply.to);
     await this.registry.deliver(reply);
+  }
+
+  private assertPeerAllowed(target: Address): void {
+    const allowed = this.config.capabilities.some(
+      (c) => c.kind === "peer" && c.address === target,
+    );
+    if (!allowed) throw new CapabilityError(this.address, target);
   }
 }

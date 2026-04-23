@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Agent } from "../src/agent.js";
+import { Agent, CapabilityError } from "../src/agent.js";
 import { MemoryInbox } from "../src/memory-inbox.js";
 import { PeerRegistry } from "../src/peer-registry.js";
 import type { AgentConfig } from "../src/agent-config.js";
@@ -29,7 +29,7 @@ const baseConfig: AgentConfig = {
   welcomeMessage: "",
   guardrails: "",
   tools: [],
-  capabilities: [],
+  capabilities: [{ kind: "peer", address: "test/user" }],
 };
 
 const msg = (content: string, from: `${string}/${string}` = "test/user"): Message => ({
@@ -50,7 +50,7 @@ const sinkPeer = (address: `${string}/${string}`): Peer & { received: Message[] 
   },
 });
 
-describe("Agent (with PeerRegistry)", () => {
+describe("Agent", () => {
   it("delivers its reply back to the sender via the registry", async () => {
     const registry = new PeerRegistry();
     const user = sinkPeer("test/user");
@@ -109,5 +109,60 @@ describe("Agent (with PeerRegistry)", () => {
     ]);
     expect(captured[0]?.model).toBe("gpt-4o-mini");
     expect(captured[0]?.maxTokens).toBe(100);
+  });
+
+  describe("capability enforcement", () => {
+    it("does not deliver a reply when the target peer is not in capabilities", async () => {
+      const registry = new PeerRegistry();
+      const stranger = sinkPeer("test/stranger");
+      registry.register(stranger);
+
+      const configWithoutCap: AgentConfig = { ...baseConfig, capabilities: [] };
+      const agent = new Agent(
+        "test/agent",
+        configWithoutCap,
+        mockLLM("secret"),
+        new MemoryInbox(),
+        registry,
+      );
+      registry.register(agent);
+      await agent.start();
+
+      await agent.send(msg("hi", "test/stranger"));
+      await new Promise((r) => setImmediate(r));
+
+      // Capability-less reply is blocked — stranger never receives anything.
+      expect(stranger.received).toHaveLength(0);
+    });
+
+    it("allows replies when a matching PeerCapability is granted", async () => {
+      const registry = new PeerRegistry();
+      const stranger = sinkPeer("test/stranger");
+      registry.register(stranger);
+
+      const config: AgentConfig = {
+        ...baseConfig,
+        capabilities: [{ kind: "peer", address: "test/stranger" }],
+      };
+      const agent = new Agent("test/agent", config, mockLLM("ok"), new MemoryInbox(), registry);
+      registry.register(agent);
+      await agent.start();
+
+      await agent.send(msg("hi", "test/stranger"));
+      await new Promise((r) => setImmediate(r));
+
+      expect(stranger.received).toHaveLength(1);
+      expect(stranger.received[0]?.content).toBe("ok");
+    });
+
+    it("throws CapabilityError with agent and target addresses", () => {
+      const err = new CapabilityError("test/agent", "test/stranger");
+      expect(err).toBeInstanceOf(Error);
+      expect(err.name).toBe("CapabilityError");
+      expect(err.agent).toBe("test/agent");
+      expect(err.target).toBe("test/stranger");
+      expect(err.message).toContain("test/agent");
+      expect(err.message).toContain("test/stranger");
+    });
   });
 });

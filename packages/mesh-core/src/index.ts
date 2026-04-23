@@ -24,6 +24,6 @@ export {
   type TokenUsage,
 } from "./llm.js";
 export { type AgentConfig } from "./agent-config.js";
-export { Agent } from "./agent.js";
+export { Agent, CapabilityError } from "./agent.js";
 
 export const version = "0.0.1";
