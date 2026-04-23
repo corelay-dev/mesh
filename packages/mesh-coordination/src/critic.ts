@@ -1,3 +1,4 @@
+import { noopTracer, type Tracer } from "@corelay/mesh-observe";
 import type { LLMClient, LLMRequest } from "@corelay/mesh-core";
 
 export interface CriticConfig {
@@ -26,6 +27,8 @@ export interface CriticConfig {
    * Default 50.
    */
   autoApproveBelowChars?: number;
+  /** Optional tracer. Defaults to noopTracer. */
+  tracer?: Tracer;
 }
 
 export interface CriticVerdict {
@@ -73,7 +76,8 @@ const buildCritiquePrompt = (config: CriticConfig): string =>
  * whether to deliver or escalate.
  */
 export class Critic {
-  private readonly config: Required<CriticConfig>;
+  private readonly config: Required<Omit<CriticConfig, "tracer">>;
+  private readonly tracer: Tracer;
 
   constructor(config: CriticConfig) {
     this.config = {
@@ -82,9 +86,34 @@ export class Critic {
       guardrails: "",
       ...config,
     };
+    this.tracer = config.tracer ?? noopTracer;
   }
 
   async review(params: {
+    userMessage: string;
+    agentResponse: string;
+    systemPrompt: string;
+  }): Promise<CriticVerdict> {
+    return this.tracer.span(
+      "coordination.critic",
+      {
+        "critic.domain": this.config.domain,
+        "critic.model": this.config.model,
+        "critic.max_cycles": this.config.maxCycles,
+        "response.length": params.agentResponse.length,
+      },
+      async (ctx) => {
+        const verdict = await this.reviewInner(params);
+        ctx.setAttributes({
+          "critic.revised": verdict.revised,
+          "critic.cycles": verdict.cycles,
+        });
+        return verdict;
+      },
+    );
+  }
+
+  private async reviewInner(params: {
     userMessage: string;
     agentResponse: string;
     systemPrompt: string;
@@ -99,7 +128,7 @@ export class Critic {
     let lastCritique: string | undefined;
 
     for (let cycle = 1; cycle <= this.config.maxCycles; cycle++) {
-      const critique = await this.critique(userMessage, current);
+      const critique = await this.critique(userMessage, current, cycle);
       lastCritique = critique;
 
       if (critique.trim().startsWith(APPROVED)) {
@@ -112,26 +141,32 @@ export class Critic {
       }
 
       const issue = critique.replace(/^REVISE:\s*/i, "").trim();
-      current = await this.revise(systemPrompt, userMessage, current, issue);
+      current = await this.revise(systemPrompt, userMessage, current, issue, cycle);
     }
 
     return { content: current, cycles: this.config.maxCycles, revised: true, lastCritique };
   }
 
-  private async critique(userMessage: string, agentResponse: string): Promise<string> {
-    const request: LLMRequest = {
-      model: this.config.model,
-      maxTokens: 300,
-      messages: [
-        { role: "system", content: buildCritiquePrompt(this.config) },
-        {
-          role: "user",
-          content: `User asked: "${userMessage}"\n\nAgent responded: "${agentResponse}"`,
-        },
-      ],
-    };
-    const response = await this.config.llm.chat(request);
-    return response.content;
+  private async critique(userMessage: string, agentResponse: string, cycle: number): Promise<string> {
+    return this.tracer.span(
+      "coordination.critic.critique",
+      { "critic.cycle": cycle },
+      async () => {
+        const request: LLMRequest = {
+          model: this.config.model,
+          maxTokens: 300,
+          messages: [
+            { role: "system", content: buildCritiquePrompt(this.config) },
+            {
+              role: "user",
+              content: `User asked: "${userMessage}"\n\nAgent responded: "${agentResponse}"`,
+            },
+          ],
+        };
+        const response = await this.config.llm.chat(request);
+        return response.content;
+      },
+    );
   }
 
   private async revise(
@@ -139,21 +174,28 @@ export class Critic {
     userMessage: string,
     agentResponse: string,
     issue: string,
+    cycle: number,
   ): Promise<string> {
-    const request: LLMRequest = {
-      model: this.config.model,
-      maxTokens: 1024,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-        { role: "assistant", content: agentResponse },
-        {
-          role: "user",
-          content: `A quality reviewer found this issue with your response: "${issue}". Provide a corrected response that addresses the concern. Return ONLY the corrected response text.`,
-        },
-      ],
-    };
-    const response = await this.config.llm.chat(request);
-    return response.content;
+    return this.tracer.span(
+      "coordination.critic.revise",
+      { "critic.cycle": cycle },
+      async () => {
+        const request: LLMRequest = {
+          model: this.config.model,
+          maxTokens: 1024,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage },
+            { role: "assistant", content: agentResponse },
+            {
+              role: "user",
+              content: `A quality reviewer found this issue with your response: "${issue}". Provide a corrected response that addresses the concern. Return ONLY the corrected response text.`,
+            },
+          ],
+        };
+        const response = await this.config.llm.chat(request);
+        return response.content;
+      },
+    );
   }
 }

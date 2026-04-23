@@ -22,7 +22,8 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.0.1"
+    "@corelay/mesh-core": "0.0.1",
+    "@corelay/mesh-observe": "0.0.1"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
