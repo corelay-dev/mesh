@@ -8,6 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Post-Week-1 cleanup:** closing the gaps flagged at the end of Week 1.
+  - `WorkflowRecorder` interface in `@corelay/mesh-core` — write-side contract for durable workflows.
+  - `run()` gained an optional `recorder` parameter. When supplied, it creates a workflow, records message_sent + message_delivered events, and marks completed/failed on terminal outcomes.
+  - `WorkflowStore` now declares `implements WorkflowRecorder`.
+  - Testcontainers-based integration tests for `WorkflowStore` (4 tests), `PostgresInbox` (4 tests), and end-to-end `run()` + `WorkflowStore` (1 test).
+
 - **Day 5 (Week 1):** Durability foundations + end-to-end example.
   - `Workflow`, `WorkflowEvent`, `WorkflowStatus`, `WorkflowEventKind` types in `@corelay/mesh-core`.
   - `@corelay/mesh-postgres` package scaffolded.
