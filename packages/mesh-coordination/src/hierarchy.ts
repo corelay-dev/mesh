@@ -128,13 +128,16 @@ export class Hierarchy {
         if (subTask === undefined) return;
         await registry.deliver({
           id: `${traceId}-${worker.address}`,
-          from,
+          // Reply target: Agents reply to message.from, so we set the
+          // collector as the from-address. The original caller (passed
+          // in `from`) is still visible to the worker via the trace metadata.
+          from: collectorAddress,
           to: worker.address,
           kind: "peer",
           content: subTask,
           traceId,
           createdAt: Date.now(),
-          metadata: { hierarchy: { collectorAddress } },
+          metadata: { hierarchy: { collectorAddress, originalFrom: from } },
         });
       };
 
