@@ -6,6 +6,7 @@ import type {
   WorkflowEvent,
   WorkflowEventData,
   WorkflowEventKind,
+  WorkflowRecorder,
   WorkflowStatus,
 } from "@corelay/mesh-core";
 
@@ -16,13 +17,16 @@ export interface WorkflowStoreConfig {
 /**
  * Durable store for Workflows and their append-only event logs.
  *
+ * Implements the WorkflowRecorder interface from @corelay/mesh-core, so it
+ * can be passed to run() to persist a workflow end-to-end.
+ *
  * Day 5 API: createWorkflow, appendEvent, getWorkflow, getEvents,
  * updateStatus. Resume-from-events arrives in Week 2.
  *
  * Assumes sql/001-init.sql has been applied. Uses only standard SQL, no
  * pg-specific features beyond JSONB.
  */
-export class WorkflowStore {
+export class WorkflowStore implements WorkflowRecorder {
   private pool: Pool;
 
   constructor(config: WorkflowStoreConfig) {
