@@ -8,6 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Week 2 · Observability (part 2):** fills in the flags from part 1.
+  - `Critic`, `Hierarchy`, and `HumanPeer` each accept an optional `tracer` in their config and emit named spans: `coordination.critic` (with inner `coordination.critic.critique` and `coordination.critic.revise` per cycle), `coordination.hierarchy` (with worker contributed/missed counts), and `coordination.human.respond` (with decision kind and actor). Default remains `noopTracer` so existing tests continue to pass.
+  - `@corelay/mesh-observe` README documents Tracer usage with `noopTracer` and `OTelTracer`, calls out the context-manager requirement and what breaks without one, and lists the exporter choices (Console, OTLP HTTP/gRPC).
+  - New `examples/traced-agent` — `hello-agent` with a full OTel pipeline (AsyncLocalStorage context manager + BasicTracerProvider + ConsoleSpanExporter + OTelTracer). Prints the span tree to stdout so the tracing contract is demonstrable without a real backend.
+
 - **Week 2 · Observability (part 1):** new `@corelay/mesh-observe` package + Agent instrumentation.
   - `Tracer` interface — tiny contract (`span(name, attrs, fn)`) consumed by instrumented Mesh primitives. `SpanContext` lets the body `setAttribute(s)`, `recordException`, and `setStatus`. Attributes are narrowly typed.
   - `noopTracer` — default. Runs the function, records nothing. Means "no instrumentation" is the same code path as instrumented code, just cheaper.
