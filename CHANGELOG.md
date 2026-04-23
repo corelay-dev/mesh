@@ -8,6 +8,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Day 5 (Week 1):** Durability foundations + end-to-end example.
+  - `Workflow`, `WorkflowEvent`, `WorkflowStatus`, `WorkflowEventKind` types in `@corelay/mesh-core`.
+  - `@corelay/mesh-postgres` package scaffolded.
+  - SQL schema (`sql/001-init.sql`): `workflows`, `workflow_events`, `inbox_messages` tables, keyed on epoch-millis timestamps, partial index for unclaimed inbox rows.
+  - `WorkflowStore` — durable workflow + append-only event log.
+  - `PostgresInbox` — polling consumer with at-least-once semantics; failed handlers leave rows unclaimed for retry.
+  - `run(registry, rootAddress, userMessage)` convenience helper with timeout.
+  - `examples/hello-agent` — end-to-end example against a real OpenAI key (`gpt-4o-mini`).
 - **Day 4 (Week 1):** Address-based routing and capability enforcement.
   - `PeerRegistry` — in-process routing keyed by Address with `UnknownPeerError` for misses.
   - `Agent` refactored to route replies via the registry (removing the Day 3 `lastReply` stash).
