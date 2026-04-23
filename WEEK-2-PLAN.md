@@ -4,7 +4,7 @@ Week 1 shipped the core primitives, an in-memory runtime, a Postgres-backed dura
 
 ## Goals
 
-1. **Coordination primitives** — Critic, Hierarchy, Pipeline, Human-in-the-loop — as named composable Loom modules.
+1. **Coordination primitives** — Critic, Hierarchy, Pipeline, Human-in-the-loop — as named composable Mesh modules.
 2. **LLM routing** — `@corelay/mesh-llm` package with provider clients (OpenAI, Anthropic, Bedrock, Ollama) and a primary+fallback router.
 3. **Observability** — `@corelay/mesh-observe` with OpenTelemetry spans for every Agent, tool call, LLM call, and workflow event.
 4. **Resume after crash** — replay from the workflow event log so a restarted pod picks up mid-conversation.

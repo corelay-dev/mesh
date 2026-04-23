@@ -1,5 +1,5 @@
 {
-  "name": "@loom-examples/hello-agent",
+  "name": "@mesh-examples/hello-agent",
   "version": "0.0.1",
   "private": true,
   "description": "Minimal Corelay Mesh example: router + one agent + real LLM, prints a reply.",
