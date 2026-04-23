@@ -8,6 +8,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Week 2 · WhatsApp channel:** new `@corelay/mesh-channels-whatsapp` package.
+  - `parseWebhookBody` + `toMessage` — Meta Cloud API webhook payload → `@corelay/mesh-core` `Message`. Text-only in Week 2; malformed or non-text events return empty without throwing.
+  - `WhatsAppClient.sendText` — thin POST to Meta's `/messages` endpoint with injectable `fetch` and configurable Graph API version.
+  - `userPeer(config)` — outbound `Peer` at address `whatsapp/<phone>`; `send()` dispatches via `WhatsAppClient`. Per-message `metadata.whatsapp.phoneNumberId` overrides the client's default sender so replies go through the same Meta phone that received the inbound.
+  - `handleWebhook(config, request)` — framework-agnostic entry point that performs the Meta subscription challenge (GET) and delivers inbound messages via a PeerRegistry (POST). Auto-registers a `userPeer` for each new sender address on first contact. Always returns 200 on POST (malformed body, delivery failure) because Meta retries non-2xx and generates duplicates.
+  - 23 tests covering parser, client, userPeer routing, and webhook handler (challenge, malformed body, auto-register, delivery failure, wrong method).
+
 - **Week 2 · Human-in-the-loop primitive:** humans as peers in `@corelay/mesh-coordination`.
   - `HumanPeer` — a `Peer` that stores inbound messages in a durable worklist (via any `Inbox`, including `PostgresInbox`), exposes them via `list()`, and lets a real human (via UI, API, or channel reply) record a decision via `respond(itemId, action)`. Decisions: `approve` (forward original), `reject` (forward reason), `edit` (forward edited content), `reassign` (forward original to a different address).
   - `EscalationPolicy` — optional per-item timeout with either `reject` or `reassign` semantics, so stalled flows don't block indefinitely. Escalation replies carry `actor: "system:escalation"` to distinguish from real human actions.
