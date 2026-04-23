@@ -8,6 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Week 2 · Resume after crash:** durability proven end-to-end + workflow reconciler.
+  - Two new `PostgresInbox` integration tests prove the crash-and-resume shape: a restarted consumer picks up unclaimed rows from a crashed predecessor, and a new consumer picks up messages whose handler was killed mid-flight. Durability guarantee is at-least-once; handlers must be idempotent on `Message.id`.
+  - `sweepStaleWorkflows` — background reconciler that marks `running` workflows as `failed` if they haven't been updated past a configurable threshold (default 5 minutes). Concurrency-safe, bounded per-call limit, runs on whatever schedule the caller prefers (cron, setInterval, Temporal).
+  - 4 integration tests covering sweeper correctness (stale vs fresh, terminal-status preservation, limit, no-op path).
+
 - **Week 2 · Observability (part 2):** fills in the flags from part 1.
   - `Critic`, `Hierarchy`, and `HumanPeer` each accept an optional `tracer` in their config and emit named spans: `coordination.critic` (with inner `coordination.critic.critique` and `coordination.critic.revise` per cycle), `coordination.hierarchy` (with worker contributed/missed counts), and `coordination.human.respond` (with decision kind and actor). Default remains `noopTracer` so existing tests continue to pass.
   - `@corelay/mesh-observe` README documents Tracer usage with `noopTracer` and `OTelTracer`, calls out the context-manager requirement and what breaks without one, and lists the exporter choices (Console, OTLP HTTP/gRPC).
