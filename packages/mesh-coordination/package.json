@@ -3,6 +3,16 @@
   "version": "0.0.1",
   "description": "Named coordination primitives for Corelay Mesh: Critic, Hierarchy, Pipeline, Human-in-the-loop.",
   "license": "MIT",
+  "author": "Corelay Ltd",
+  "homepage": "https://github.com/corelay-dev/mesh#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corelay-dev/mesh.git",
+    "directory": "packages/mesh-coordination"
+  },
+  "bugs": {
+    "url": "https://github.com/corelay-dev/mesh/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

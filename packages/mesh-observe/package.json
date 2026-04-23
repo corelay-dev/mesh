@@ -3,6 +3,16 @@
   "version": "0.0.1",
   "description": "Tracing for Corelay Mesh. Tiny Tracer interface with a no-op default and an optional OpenTelemetry-backed implementation.",
   "license": "MIT",
+  "author": "Corelay Ltd",
+  "homepage": "https://github.com/corelay-dev/mesh#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corelay-dev/mesh.git",
+    "directory": "packages/mesh-observe"
+  },
+  "bugs": {
+    "url": "https://github.com/corelay-dev/mesh/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,7 +35,9 @@
     "@opentelemetry/api": "^1.9.0"
   },
   "peerDependenciesMeta": {
-    "@opentelemetry/api": { "optional": true }
+    "@opentelemetry/api": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.0",
