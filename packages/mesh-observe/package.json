@@ -1,0 +1,38 @@
+{
+  "name": "@corelay/mesh-observe",
+  "version": "0.0.1",
+  "description": "Tracing for Corelay Mesh. Tiny Tracer interface with a no-op default and an optional OpenTelemetry-backed implementation.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "peerDependencies": {
+    "@opentelemetry/api": "^1.9.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/api": { "optional": true }
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
