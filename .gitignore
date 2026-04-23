@@ -2,6 +2,7 @@ node_modules/
 dist/
 .turbo/
 *.tsbuildinfo
+tsconfig.vitest-temp.json
 .env
 .env.local
 .DS_Store
