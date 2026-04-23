@@ -1,0 +1,28 @@
+{
+  "name": "@mesh-examples/safevoice-triage",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Week 2 acceptance gate — Triage agent + Hierarchy + Critic + WhatsApp + Human, end-to-end.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "start:high-risk": "tsx src/index.ts high-risk",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "@corelay/mesh-channels-whatsapp": "0.0.1",
+    "@corelay/mesh-coordination": "0.0.1",
+    "@corelay/mesh-core": "0.0.1",
+    "@corelay/mesh-llm": "0.0.1",
+    "@corelay/mesh-observe": "0.0.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/context-async-hooks": "^1.30.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}
