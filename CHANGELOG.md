@@ -8,6 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+- **Week 2 · Human-in-the-loop primitive:** humans as peers in `@corelay/mesh-coordination`.
+  - `HumanPeer` — a `Peer` that stores inbound messages in a durable worklist (via any `Inbox`, including `PostgresInbox`), exposes them via `list()`, and lets a real human (via UI, API, or channel reply) record a decision via `respond(itemId, action)`. Decisions: `approve` (forward original), `reject` (forward reason), `edit` (forward edited content), `reassign` (forward original to a different address).
+  - `EscalationPolicy` — optional per-item timeout with either `reject` or `reassign` semantics, so stalled flows don't block indefinitely. Escalation replies carry `actor: "system:escalation"` to distinguish from real human actions.
+  - 13 tests: 9 covering every decision kind and validation error, 4 covering escalation (reject mode, reassign mode, no-escalation on timely response, `stop()` cancels timers).
+  - "Durable pause" means a message sits in the human's inbox until a human acts — no in-process wait. Matches how real caseworkers, inspectors, and reviewers integrate.
+
 - **Week 2 · Hierarchy primitive:** manager-workers coordination in `@corelay/mesh-coordination`.
   - `Hierarchy` — decomposes a task via a `TaskDecomposer`, dispatches per-worker sub-tasks as Peer messages, collects replies on a temporary collector peer, and merges via a `ResultMerger`. Parallel fan-out by default; sequential available. Configurable timeout; missed workers surfaced in `HierarchyResult`.
   - `LLMDecomposer` + `LLMMerger` — default LLM-backed implementations. Injectable `LLMClient` and model so any router plugs in.
