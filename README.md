@@ -12,7 +12,7 @@ Peers, durable workflows, named coordination patterns, and humans as first-class
 [![CI](https://github.com/corelay-dev/mesh/actions/workflows/ci.yml/badge.svg)](https://github.com/corelay-dev/mesh/actions)
 [![npm: @corelay/mesh-core](https://img.shields.io/badge/npm-%40corelay%2Fmesh--core-blue)](https://www.npmjs.com/package/@corelay/mesh-core)
 
-[Architecture essay](https://corelay.dev/architecture) · [Agent-Factory thesis](https://corelay.dev/agent-factory) · [Docs](./docs/index.md) · [Website](https://corelay.dev) · [Examples](./examples)
+[Architecture essay](https://corelay.dev/architecture) · [Agent-Factory thesis](https://corelay.dev/agent-factory) · [Docs](https://corelay-dev.github.io/mesh/) · [Website](https://corelay.dev) · [Examples](./examples)
 
 </div>
 
