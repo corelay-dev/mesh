@@ -1,0 +1,47 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (don't actually publish)"
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      - name: Publish (dry run)
+        if: ${{ inputs.dry_run }}
+        run: |
+          for pkg in packages/mesh-*/; do
+            echo "--- DRY RUN: $(basename $pkg) ---"
+            cd "$pkg"
+            npm publish --dry-run --access public 2>&1 | tail -5
+            cd ../..
+          done
+
+      - name: Publish (real)
+        if: ${{ !inputs.dry_run }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for pkg in packages/mesh-*/; do
+            echo "--- Publishing: $(basename $pkg) ---"
+            cd "$pkg"
+            npm publish --access public --provenance 2>&1 | tail -5
+            cd ../..
+          done
