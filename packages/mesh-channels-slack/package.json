@@ -1,0 +1,19 @@
+{
+  "name": "@corelay/mesh-channels-slack",
+  "version": "0.1.0",
+  "description": "SLACK channel adapter for Corelay Mesh.",
+  "license": "MIT",
+  "author": "Corelay Ltd",
+  "homepage": "https://github.com/corelay-dev/mesh#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/corelay-dev/mesh.git", "directory": "packages/mesh-channels-slack" },
+  "bugs": { "url": "https://github.com/corelay-dev/mesh/issues" },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run", "clean": "rm -rf dist *.tsbuildinfo" },
+  "dependencies": { "@corelay/mesh-core": "0.1.0" },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^2.1.8" },
+  "publishConfig": { "access": "public" }
+}
