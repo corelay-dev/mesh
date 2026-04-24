@@ -34,5 +34,6 @@ export {
 } from "./workflow.js";
 export { type WorkflowRecorder } from "./workflow-recorder.js";
 export { run, type RunOptions, type RunResult } from "./run.js";
+export { canaryPeer, type CanaryConfig } from "./canary.js";
 
 export const version = "0.0.1";
