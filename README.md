@@ -99,8 +99,8 @@ For a full working example with LLM fallbacks, see [`examples/hello-agent`](./ex
 | `@corelay/mesh-coordination` | Critic, Hierarchy, HumanPeer with `EscalationPolicy` | ✅ Shipping |
 | `@corelay/mesh-channels-whatsapp` | WhatsApp Cloud API — parser, client, userPeer, webhook | ✅ Shipping |
 | `@corelay/mesh-observe` | `Tracer` interface, `noopTracer`, OpenTelemetry implementation | ✅ Shipping |
-| `@corelay/mesh-eval` | Eval suites, deploy-gates, shadow/canary | 🛠 Q1 2026 |
-| `@corelay/mesh-compose` | Authoring agent (Corelay Compose) | ✅ Shipping v0.1 |
+| `@corelay/mesh-eval` | Eval suites, deploy-gates, shadow/canary | ✅ Shipping v0.1 |
+| `@corelay/mesh-compose` | Authoring agent (Corelay Compose) | ✅ Shipping v0.2 |
 | `@corelay/mesh-mcp` | MCP server side (client side already covered by the ecosystem) | 🛠 Q1 2026 |
 
 ## Durable execution
