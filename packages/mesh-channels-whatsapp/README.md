@@ -1,27 +1,50 @@
 # @corelay/mesh-channels-whatsapp
 
-WhatsApp Cloud API channel for Corelay Mesh.
+WhatsApp Cloud API channel adapter for [Corelay Mesh](https://github.com/corelay-dev/mesh).
 
-**Status: Week 2 — in development.**
+Turns inbound WhatsApp webhooks into Mesh `Message`s and sends outbound messages via the Cloud API. Framework-agnostic — wire it into Express, Fastify, or a raw Node HTTP server.
 
-## What it does
+## Install
 
-Turns inbound WhatsApp messages into `@corelay/mesh-core` `Message`s and outbound `Message`s into WhatsApp API calls.
+```sh
+npm install @corelay/mesh-channels-whatsapp
+```
 
-- **Inbound**: `handleWebhook(req)` parses a Meta Cloud API webhook, builds a `Message`, delivers it via a `PeerRegistry`.
-- **Outbound**: `UserPeer` is a `Peer` representing the WhatsApp user; its `send()` calls Meta's messages API.
+## API
 
-The channel is framework-agnostic: `handleWebhook` takes a parsed body + method + query and returns a response. Wire it into Express, Fastify, Remix, or a raw Node HTTP server — your choice.
+### `parseWebhookBody(body: unknown): ParsedInbound[]`
 
-## Peer addressing
+Parses the raw Meta webhook JSON payload into structured inbound entries.
 
-WhatsApp users are addressed as `whatsapp/${phoneNumber}` — for example `whatsapp/447911123456`. The full E.164 number, no `+`. The agent you want to talk to is configured by the caller.
+### `toMessage(parsed: ParsedInbound): Message`
+
+Converts a parsed inbound entry into a Mesh `Message`.
+
+### `handleWebhook(config: HandleWebhookConfig, req: WebhookRequest): WebhookResponse`
+
+Full webhook handler. Accepts a config object and a framework-agnostic request, returns a `WebhookResponse`. Always responds with `200` on POST requests to prevent Meta from retrying delivery.
+
+### `WhatsAppClient`
+
+Sends outbound messages through the Cloud API. Configured with `accessToken` and `defaultPhoneNumberId`.
+
+```ts
+import { WhatsAppClient } from "@corelay/mesh-channels-whatsapp";
+
+const client = new WhatsAppClient({ accessToken: "...", defaultPhoneNumberId: "..." });
+```
+
+### `userPeer(config: UserPeerConfig): Peer`
+
+Creates a `Peer` representing a WhatsApp user. Users are addressed as `whatsapp/<phoneNumberE164>` (no `+` prefix).
 
 ## Setup
 
-1. Meta Developer Portal → create a WhatsApp Business app.
-2. Point the webhook at your deployment's `/webhook/whatsapp` URL.
-3. Set `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` in env.
-4. Wire `handleWebhook` into your HTTP framework.
+1. Create a WhatsApp Business app in the Meta Developer Portal.
+2. Point the webhook URL at your deployment.
+3. Provide `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ACCESS_TOKEN`, and `WHATSAPP_PHONE_NUMBER_ID`.
+4. Pass requests through to `handleWebhook`.
 
-More to come in the full docs once the package ships.
+## License
+
+MIT © [Corelay Ltd](https://github.com/corelay-dev)

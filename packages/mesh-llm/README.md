@@ -1,25 +1,54 @@
 # @corelay/mesh-llm
 
-LLM router and provider clients for Corelay Mesh.
+LLM router and provider clients for [Corelay Mesh](https://github.com/corelay-dev/mesh). Route completions through a primary provider with automatic fallback to alternatives.
 
-Ships an `LLMRouter` that implements `@corelay/mesh-core`'s `LLMClient`
-interface by composing one primary provider and an ordered fallback list.
-Provider implementations for OpenAI, Anthropic, and AWS Bedrock are
-included.
+## Providers
 
-**Status: Week 2 — in development.**
+| Client | Wraps |
+| --- | --- |
+| `OpenAIClient` | `openai` |
+| `AnthropicClient` | `@anthropic-ai/sdk` |
+| `BedrockClient` | `@aws-sdk/client-bedrock-runtime` |
 
-## Peer dependencies
+Every client implements the `LLMClient` interface from `@corelay/mesh-core`.
 
-Providers are installed as peer dependencies. Install only what you use:
+## Install
 
 ```bash
-# OpenAI
-npm install openai
-
-# Anthropic
-npm install @anthropic-ai/sdk
-
-# Bedrock (Claude)
-npm install @aws-sdk/client-bedrock-runtime
+npm install @corelay/mesh-llm
+# Peer-install only the SDKs you need:
+npm install openai                           # OpenAI
+npm install @anthropic-ai/sdk                # Anthropic
+npm install @aws-sdk/client-bedrock-runtime  # Bedrock
 ```
+
+## Usage
+
+```ts
+import { LLMRouter, OpenAIClient, AnthropicClient } from "@corelay/mesh-llm";
+
+const router = new LLMRouter({
+  primary: "openai",
+  fallbacks: ["anthropic"],
+  providers: [
+    new OpenAIClient({ apiKey: process.env.OPENAI_API_KEY }),
+    new AnthropicClient({ apiKey: process.env.ANTHROPIC_API_KEY }),
+  ],
+});
+
+const response = await router.complete({ model: "gpt-4o", messages });
+```
+
+If the primary fails, `LLMRouter` walks `fallbacks` in order until one succeeds.
+
+## API — `LLMRouter(options)`
+
+| Option | Type | Required | Description |
+| --- | --- | --- | --- |
+| `primary` | `string` | yes | Primary provider name |
+| `fallbacks` | `string[]` | no | Ordered fallback provider names |
+| `providers` | `LLMClient[]` | yes | Provider instances |
+
+## License
+
+[MIT](./LICENSE) © Corelay Ltd
