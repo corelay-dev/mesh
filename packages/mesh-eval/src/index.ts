@@ -2,7 +2,9 @@ export { runEval } from "./run.js";
 export type { RunEvalOptions } from "./run.js";
 export { evaluateAssertion } from "./assertions.js";
 export { createLlmJudge } from "./judge.js";
+export { compareReports } from "./compare.js";
 export type { CreateLlmJudgeOptions } from "./judge.js";
+export type { CaseComparison, RegressionReport } from "./compare.js";
 export type {
   Assertion,
   AssertionResult,
