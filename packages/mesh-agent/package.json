@@ -1,0 +1,35 @@
+{
+  "name": "@corelay/mesh-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "description": "Corelay Mesh Agent \u2014 zero-dependency telemetry SDK. Reports health, errors, LLM usage, and HTTP metrics to Corelay Command.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/corelay-dev/mesh.git",
+    "directory": "packages/mesh-agent"
+  }
+}
