@@ -1,47 +1,44 @@
-name: Publish
+name: Publish Packages
 
 on:
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: "Dry run (don't actually publish)"
-        type: boolean
-        default: true
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - name: Test (skip Postgres integration tests — no Docker in this runner)
-        run: SKIP_INTEGRATION=true npm test
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
 
-      - name: Publish (dry run)
-        if: ${{ inputs.dry_run }}
-        run: |
-          for pkg in packages/mesh-*/; do
-            echo "--- DRY RUN: $(basename $pkg) ---"
-            cd "$pkg"
-            npm publish --dry-run --access public 2>&1 | tail -5
-            cd ../..
-          done
+      - run: pnpm install --frozen-lockfile
 
-      - name: Publish (real)
-        if: ${{ !inputs.dry_run }}
+      - run: pnpm build
+
+      - run: pnpm test
+
+      - name: Publish packages
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          cat ~/.npmrc | head -c 40
-          echo "..."
-          for pkg in packages/mesh-*/; do
-            echo "--- Publishing: $(basename $pkg) ---"
-            cd "$pkg"
-            npm publish --access public 2>&1 | tail -8
-            cd ../..
+          for pkg in packages/mesh-observe packages/mesh-core packages/mesh-llm packages/mesh-channels-whatsapp packages/mesh-postgres packages/mesh-coordination packages/mesh-mcp packages/mesh-compose packages/mesh-eval packages/mesh-agent; do
+            if [ -d "$pkg/dist" ]; then
+              echo "Publishing $pkg..."
+              cd "$pkg"
+              npm publish --access public --provenance || echo "Skipped (already published or error)"
+              cd ../..
+            fi
           done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
