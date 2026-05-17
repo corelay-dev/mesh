@@ -55,3 +55,4 @@ export { renderTemplate } from "./media/renderer.js";
 // Agents
 export { createPublisherAgent, type PublisherDeps } from "./agents/publisher.js";
 export { createMonitorAgent, type MonitorDeps } from "./agents/monitor.js";
+export { WhatsAppStatusAdapter, type WhatsAppStatusConfig } from "./platforms/whatsapp-status.js";
