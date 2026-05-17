@@ -15,24 +15,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
+          cache: npm
 
-      - run: pnpm install --frozen-lockfile
+      - run: npm ci
 
-      - run: pnpm build
+      - run: npm run build
 
-      - run: pnpm test
+      - run: npm test
 
       - name: Publish packages
         run: |
-          for pkg in packages/mesh-observe packages/mesh-core packages/mesh-llm packages/mesh-channels-whatsapp packages/mesh-postgres packages/mesh-coordination packages/mesh-mcp packages/mesh-compose packages/mesh-eval packages/mesh-agent; do
+          for pkg in packages/mesh-observe packages/mesh-core packages/mesh-llm packages/mesh-coordination packages/mesh-channels-whatsapp packages/mesh-channels-sms packages/mesh-channels-slack packages/mesh-postgres packages/mesh-mcp packages/mesh-compose packages/mesh-eval packages/mesh-campaign packages/mesh-social packages/mesh-analytics; do
             if [ -d "$pkg/dist" ]; then
               echo "Publishing $pkg..."
               cd "$pkg"
