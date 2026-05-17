@@ -25,7 +25,7 @@ export interface PostgresInboxConfig {
  *   invokes the handler, and marks them consumed on success.
  * - On handler failure, retry_count is incremented. After maxRetries,
  *   the message is moved to the dead letter queue (dlq_messages table).
- * - stop() awaits the current drain cycle before resolving (graceful shutdown).
+ * - stop() aborts in-flight handlers and resolves once the drain cycle exits.
  */
 export class PostgresInbox implements Inbox {
   private readonly pool: Pool;
@@ -37,6 +37,7 @@ export class PostgresInbox implements Inbox {
   private stopped = false;
   private timer?: NodeJS.Timeout;
   private draining: Promise<void> = Promise.resolve();
+  private abortController = new AbortController();
 
   constructor(config: PostgresInboxConfig) {
     this.pool = config.pool;
@@ -58,13 +59,16 @@ export class PostgresInbox implements Inbox {
   async consume(handler: MessageHandler): Promise<void> {
     this.handler = handler;
     this.stopped = false;
+    this.abortController = new AbortController();
     this.scheduleDrain();
   }
 
   async stop(): Promise<void> {
     this.stopped = true;
+    this.abortController.abort();
     if (this.timer) clearTimeout(this.timer);
-    // Await the current drain cycle to complete
+    // Await the current drain cycle — it will exit quickly because
+    // in-flight handlers are aborted via the signal.
     await this.draining;
   }
 
@@ -93,12 +97,16 @@ export class PostgresInbox implements Inbox {
 
       const message: Message = typeof row.payload === "string" ? JSON.parse(row.payload) : row.payload;
       try {
-        await this.handler(message);
+        // Race the handler against the abort signal
+        await this.raceAbort(this.handler(message));
         await this.pool.query(
           `UPDATE inbox_messages SET consumed_at = $1 WHERE id = $2`,
           [Date.now(), row.id],
         );
-      } catch {
+      } catch (err) {
+        // If aborted, leave the message unconsumed for the next consumer
+        if (this.abortController.signal.aborted) break;
+
         // Increment retry count
         const newCount = row.retry_count + 1;
         if (newCount >= this.maxRetries) {
@@ -121,5 +129,19 @@ export class PostgresInbox implements Inbox {
         }
       }
     }
+  }
+
+  private raceAbort<T>(promise: Promise<T>): Promise<T> {
+    if (this.abortController.signal.aborted) {
+      return Promise.reject(new Error("Consumer aborted"));
+    }
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        this.abortController.signal.addEventListener("abort", () => {
+          reject(new Error("Consumer aborted"));
+        }, { once: true });
+      }),
+    ]);
   }
 }

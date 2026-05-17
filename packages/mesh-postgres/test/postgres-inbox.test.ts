@@ -180,7 +180,7 @@ describe("PostgresInbox (integration)", () => {
     expect(rows.every((r) => r.consumed_at !== null)).toBe(true);
   });
 
-  it.skip("a new consumer resumes after an in-flight handler was killed mid-processing", async () => {
+  it("a new consumer resumes after an in-flight handler was killed mid-processing", async () => {
     const address = "test/resume-midflight";
 
     // 1. First consumer starts, successfully processes message A, is then
