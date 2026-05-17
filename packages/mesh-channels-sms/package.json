@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-channels-sms",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SMS channel adapter for Corelay Mesh.",
   "license": "MIT",
   "author": "Corelay Ltd",
