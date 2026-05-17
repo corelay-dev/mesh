@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS inbox_messages (
   peer_address  TEXT        NOT NULL,
   payload       JSONB       NOT NULL,
   created_at    BIGINT      NOT NULL,
+  retry_count   INTEGER     NOT NULL DEFAULT 0,
   consumed_at   BIGINT
 );
 
