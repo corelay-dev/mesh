@@ -1,6 +1,17 @@
 import type { Pool } from "pg";
 import type { Chunk, Embedder, RetrieveOptions, Retriever } from "./types.js";
 
+const SQL_IDENTIFIER_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+export function validateSqlIdentifier(value: string, label: string): string {
+  if (!SQL_IDENTIFIER_RE.test(value)) {
+    throw new Error(
+      `Invalid SQL identifier for ${label}: "${value}" — must match /^[A-Za-z_][A-Za-z0-9_]*$/`,
+    );
+  }
+  return value;
+}
+
 export interface PgVectorRetrieverConfig {
   pool: Pool;
   embedder: Embedder;
@@ -44,10 +55,10 @@ export class PgVectorRetriever implements Retriever {
   constructor(config: PgVectorRetrieverConfig) {
     this.pool = config.pool;
     this.embedder = config.embedder;
-    this.table = config.table ?? "document_chunks";
-    this.embeddingColumn = config.embeddingColumn ?? "embedding";
-    this.contentColumn = config.contentColumn ?? "content";
-    this.namespaceColumn = config.namespaceColumn ?? "namespace";
+    this.table = validateSqlIdentifier(config.table ?? "document_chunks", "table");
+    this.embeddingColumn = validateSqlIdentifier(config.embeddingColumn ?? "embedding", "embeddingColumn");
+    this.contentColumn = validateSqlIdentifier(config.contentColumn ?? "content", "contentColumn");
+    this.namespaceColumn = validateSqlIdentifier(config.namespaceColumn ?? "namespace", "namespaceColumn");
     this.defaultTopK = config.defaultTopK ?? 5;
   }
 
@@ -66,13 +77,13 @@ export class PgVectorRetriever implements Retriever {
     const sql = `
       SELECT
         id,
-        ${this.contentColumn} AS content,
+        "${this.contentColumn}" AS content,
         metadata,
-        1 - (${this.embeddingColumn} <=> $1::vector) AS score
-      FROM ${this.table}
-      WHERE ${this.namespaceColumn} = $2
-        AND 1 - (${this.embeddingColumn} <=> $1::vector) >= $3
-      ORDER BY ${this.embeddingColumn} <=> $1::vector
+        1 - ("${this.embeddingColumn}" <=> $1::vector) AS score
+      FROM "${this.table}"
+      WHERE "${this.namespaceColumn}" = $2
+        AND 1 - ("${this.embeddingColumn}" <=> $1::vector) >= $3
+      ORDER BY "${this.embeddingColumn}" <=> $1::vector
       LIMIT $4
     `;
 

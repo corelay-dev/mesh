@@ -33,25 +33,24 @@ export class LLMEmbedder implements Embedder {
   }
 
   async embed(texts: string[]): Promise<number[][]> {
-    const results: number[][] = [];
-    for (const text of texts) {
-      const request: LLMRequest = {
-        model: this.model,
-        maxTokens: this.dimensions * 12,
-        temperature: 0,
-        messages: [
-          {
-            role: "system",
-            content: `You are an embedding function. Return ONLY a JSON array of ${this.dimensions} floating point numbers representing the semantic embedding of the user's text. No prose, no explanation, no code fences.`,
-          },
-          { role: "user", content: text },
-        ],
-      };
-      const response = await this.llm.chat(request);
-      const embedding = parseEmbedding(response.content, this.dimensions);
-      results.push(embedding);
-    }
-    return results;
+    return Promise.all(
+      texts.map(async (text) => {
+        const request: LLMRequest = {
+          model: this.model,
+          maxTokens: this.dimensions * 12,
+          temperature: 0,
+          messages: [
+            {
+              role: "system",
+              content: `You are an embedding function. Return ONLY a JSON array of ${this.dimensions} floating point numbers representing the semantic embedding of the user's text. No prose, no explanation, no code fences.`,
+            },
+            { role: "user", content: text },
+          ],
+        };
+        const response = await this.llm.chat(request);
+        return parseEmbedding(response.content, this.dimensions);
+      }),
+    );
   }
 }
 

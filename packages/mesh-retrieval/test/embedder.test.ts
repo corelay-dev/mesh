@@ -36,7 +36,7 @@ describe("LLMEmbedder", () => {
     expect(embedder.dimensions).toBe(4);
   });
 
-  it("handles multiple texts sequentially", async () => {
+  it("handles multiple texts in parallel", async () => {
     const llm = new ScriptedLLM([
       JSON.stringify([0.1, 0.2, 0.3]),
       JSON.stringify([0.4, 0.5, 0.6]),

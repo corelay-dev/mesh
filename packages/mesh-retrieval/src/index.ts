@@ -12,6 +12,7 @@ export {
 } from "./memory-retriever.js";
 export {
   PgVectorRetriever,
+  validateSqlIdentifier,
   type PgVectorRetrieverConfig,
 } from "./pgvector-retriever.js";
 export {
