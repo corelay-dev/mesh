@@ -136,6 +136,11 @@ export class A2AClient implements Peer {
         metadata: { a2aTaskId: task.id, a2aState: task.status.state },
       };
       await this.onReply(reply);
+    } else {
+      throw new A2AClientError(
+        "NO_REPLY_HANDLER",
+        `NO_REPLY_HANDLER: Task ${task.id} completed but no reply handler is registered — reply dropped`,
+      );
     }
   }
 

@@ -196,7 +196,7 @@ describe("A2A Server — tasks/cancel", () => {
   it("returns error for unknown task id", async () => {
     const { handler } = await buildServer();
     const response = await handler(jsonRpcRequest("tasks/cancel", { id: "ghost" }));
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(404);
     const body = response.body as A2AJsonRpcResponse;
     expect(body.error?.code).toBe(-32001);
   });

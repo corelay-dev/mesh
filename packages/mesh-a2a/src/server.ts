@@ -62,6 +62,7 @@ export interface A2AHttpResponse {
  * invoked via mesh-core `run()` and the reply maps to a completed task.
  */
 export const createA2AServer = (config: A2AServerConfig): A2AHttpHandler => {
+  // TODO: Unbounded — add TTL eviction or max-size cap for production use
   const tasks = new Map<string, Task>();
   const timeoutMs = config.timeoutMs ?? 30_000;
 
@@ -214,7 +215,8 @@ export const createA2AServer = (config: A2AServerConfig): A2AHttpHandler => {
         }
         const result = handleTaskCancel(paramsResult.data);
         if ("code" in result) {
-          return { status: 409, body: makeErrorResponse(request.id, result) };
+          const status = result.code === A2A_ERROR_CODES.TASK_NOT_FOUND ? 404 : 409;
+          return { status, body: makeErrorResponse(request.id, result) };
         }
         return { status: 200, body: makeResponse(request.id, result) };
       }

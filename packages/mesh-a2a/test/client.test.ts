@@ -170,6 +170,34 @@ describe("A2AClient — send (Peer interface)", () => {
 
     await expect(client.send(message)).rejects.toThrow("returned no result");
   });
+
+  it("throws A2AClientError with NO_REPLY_HANDLER when no reply handler is set", async () => {
+    const rpcResponse: A2AJsonRpcResponse<Task> = {
+      jsonrpc: "2.0",
+      id: "msg-4",
+      result: MOCK_COMPLETED_TASK,
+    };
+
+    const transport = createMockTransport(new Map([
+      [`${BASE_URL}/`, jsonResponse(rpcResponse)],
+    ]));
+
+    const client = new A2AClient({ baseUrl: BASE_URL, transport, address: REMOTE_ADDRESS });
+    // Intentionally do NOT set a reply handler
+
+    const message: Message = {
+      id: "msg-4",
+      from: "local/agent" as Address,
+      to: REMOTE_ADDRESS,
+      kind: "peer",
+      content: "Please summarize",
+      traceId: "trace-4",
+      createdAt: Date.now(),
+    };
+
+    await expect(client.send(message)).rejects.toThrow(A2AClientError);
+    await expect(client.send(message)).rejects.toThrow("NO_REPLY_HANDLER");
+  });
 });
 
 describe("A2AClient — getTask", () => {

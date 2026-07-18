@@ -80,6 +80,20 @@ Implements the core A2A specification:
 
 Not yet implemented: streaming, push notifications, server-sent events.
 
+## Caveats
+
+### In-Memory Task Store
+
+The server stores all tasks in an unbounded in-memory `Map`. This is suitable for development and low-throughput deployments but **will leak memory** under sustained load since completed/failed tasks are never evicted.
+
+<!-- TODO: Add TTL-based eviction (e.g. remove tasks older than N minutes) or a configurable
+     maxTasks cap with LRU eviction. Track in https://github.com/corelay-dev/mesh/issues -->
+
+For production use, consider:
+- Providing a pluggable `TaskStore` interface backed by Redis/Postgres
+- Adding a TTL sweep that prunes completed tasks after a configurable retention period
+- Setting a max task count with LRU eviction for memory-constrained environments
+
 ## License
 
 MIT

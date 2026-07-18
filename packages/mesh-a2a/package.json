@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@corelay/mesh-core": "0.3.0",
-    "zod": "^3.23.0"
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
