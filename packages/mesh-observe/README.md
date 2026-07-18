@@ -33,7 +33,7 @@ This package exports typed constants and builder functions for the [OpenTelemetr
 | `GEN_AI_REQUEST_TOP_P` | `gen_ai.request.top_p` | Nucleus sampling probability |
 | `GEN_AI_USAGE_INPUT_TOKENS` | `gen_ai.usage.input_tokens` | Input tokens consumed |
 | `GEN_AI_USAGE_OUTPUT_TOKENS` | `gen_ai.usage.output_tokens` | Output tokens generated |
-| `GEN_AI_USAGE_TOTAL_TOKENS` | `gen_ai.usage.total_tokens` | Total tokens (input + output) |
+| `GEN_AI_USAGE_TOTAL_TOKENS` | `gen_ai.usage.total_tokens` | Total tokens (input + output) — **Corelay extension**, not part of the OTel GenAI semconv spec |
 | `GEN_AI_RESPONSE_FINISH_REASON` | `gen_ai.response.finish_reason` | Finish reason ("stop", "length", "tool_calls") |
 | `GEN_AI_RESPONSE_MODEL` | `gen_ai.response.model` | Model that served the request |
 | `GEN_AI_RESPONSE_ID` | `gen_ai.response.id` | Provider response ID |

@@ -38,7 +38,13 @@ export const GEN_AI_USAGE_INPUT_TOKENS = "gen_ai.usage.input_tokens" as const;
 export const GEN_AI_USAGE_OUTPUT_TOKENS =
   "gen_ai.usage.output_tokens" as const;
 
-/** Total tokens (input + output) if reported by the provider. */
+/**
+ * Total tokens (input + output) if reported by the provider.
+ *
+ * **Corelay extension** — this attribute is NOT part of the official OTel GenAI
+ * semantic conventions. It is a Corelay-specific addition for providers that
+ * report a pre-summed total alongside input/output counts.
+ */
 export const GEN_AI_USAGE_TOTAL_TOKENS = "gen_ai.usage.total_tokens" as const;
 
 /** The finish reason reported by the model (e.g. "stop", "length", "tool_calls"). */
@@ -110,6 +116,10 @@ export const genAiRequestAttrs = (input: GenAiRequestInput): SpanAttributes => {
 /**
  * Build span attributes for a GenAI response/usage (set after LLM returns).
  * Intended to be passed to `ctx.setAttributes(...)` inside the span body.
+ *
+ * Calling with an empty object (`genAiResponseAttrs({})`) intentionally returns
+ * `{}` — this supports a lazy attribute-setting pattern where the caller always
+ * invokes the builder but only populates fields as they become available.
  */
 export const genAiResponseAttrs = (
   input: GenAiResponseInput,
