@@ -1,0 +1,46 @@
+{
+  "name": "@corelay/mesh-a2a",
+  "version": "0.1.0",
+  "description": "Agent-to-Agent (A2A) protocol adapter for Corelay Mesh — expose agents as A2A endpoints and delegate to external A2A agents.",
+  "license": "MIT",
+  "author": "Corelay Ltd",
+  "homepage": "https://github.com/corelay-dev/mesh#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corelay-dev/mesh.git",
+    "directory": "packages/mesh-a2a"
+  },
+  "bugs": {
+    "url": "https://github.com/corelay-dev/mesh/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@corelay/mesh-core": "0.3.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
