@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-observe",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tracing for Corelay Mesh. Tiny Tracer interface with a no-op default and an optional OpenTelemetry-backed implementation.",
   "license": "MIT",
   "author": "Corelay Ltd",

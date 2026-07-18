@@ -17,6 +17,135 @@ Instrumented Corelay Mesh primitives (`Agent`, `Critic`, `Hierarchy`, `HumanPeer
 
 When no tracer is supplied, everything runs through `noopTracer` — the same code path, just recording nothing. There's no "disable tracing" branch to worry about.
 
+## OpenTelemetry GenAI Semantic Conventions
+
+This package exports typed constants and builder functions for the [OpenTelemetry GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) (v1.28+). These let instrumented primitives emit standardised `gen_ai.*` attributes on spans without memorising string keys.
+
+### Supported attributes
+
+| Constant | Attribute key | Description |
+|----------|--------------|-------------|
+| `GEN_AI_SYSTEM` | `gen_ai.system` | GenAI system (e.g. "openai", "anthropic", "bedrock") |
+| `GEN_AI_REQUEST_MODEL` | `gen_ai.request.model` | Requested model name |
+| `GEN_AI_OPERATION_NAME` | `gen_ai.operation.name` | Operation type ("chat", "embeddings", "tool_call") |
+| `GEN_AI_REQUEST_MAX_TOKENS` | `gen_ai.request.max_tokens` | Maximum generation tokens |
+| `GEN_AI_REQUEST_TEMPERATURE` | `gen_ai.request.temperature` | Sampling temperature |
+| `GEN_AI_REQUEST_TOP_P` | `gen_ai.request.top_p` | Nucleus sampling probability |
+| `GEN_AI_USAGE_INPUT_TOKENS` | `gen_ai.usage.input_tokens` | Input tokens consumed |
+| `GEN_AI_USAGE_OUTPUT_TOKENS` | `gen_ai.usage.output_tokens` | Output tokens generated |
+| `GEN_AI_USAGE_TOTAL_TOKENS` | `gen_ai.usage.total_tokens` | Total tokens (input + output) — **Corelay extension**, not part of the OTel GenAI semconv spec |
+| `GEN_AI_RESPONSE_FINISH_REASON` | `gen_ai.response.finish_reason` | Finish reason ("stop", "length", "tool_calls") |
+| `GEN_AI_RESPONSE_MODEL` | `gen_ai.response.model` | Model that served the request |
+| `GEN_AI_RESPONSE_ID` | `gen_ai.response.id` | Provider response ID |
+| `GEN_AI_TOOL_NAME` | `gen_ai.tool.name` | Tool function name |
+| `GEN_AI_TOOL_DESCRIPTION` | `gen_ai.tool.description` | Tool description |
+
+### Builder functions
+
+Three builder functions produce `SpanAttributes` dictionaries ready to pass directly to `tracer.span()` or `ctx.setAttributes()`:
+
+```ts
+import {
+  genAiRequestAttrs,
+  genAiResponseAttrs,
+  genAiToolAttrs,
+} from "@corelay/mesh-observe";
+```
+
+#### `genAiRequestAttrs(input)` — set on span creation
+
+```ts
+const attrs = genAiRequestAttrs({
+  system: "openai",
+  model: "gpt-4o",
+  operationName: "chat",
+  maxTokens: 4096,       // optional
+  temperature: 0.7,      // optional
+  topP: 0.9,             // optional
+});
+
+await tracer.span("llm.chat", attrs, async (ctx) => {
+  // ...
+});
+```
+
+#### `genAiResponseAttrs(input)` — set after the LLM returns
+
+```ts
+await tracer.span("llm.chat", requestAttrs, async (ctx) => {
+  const response = await llm.chat(messages);
+
+  ctx.setAttributes(genAiResponseAttrs({
+    inputTokens: response.usage.inputTokens,
+    outputTokens: response.usage.outputTokens,
+    totalTokens: response.usage.totalTokens,
+    finishReason: response.finishReason,
+    responseModel: response.model,
+    responseId: response.id,
+  }));
+
+  return response;
+});
+```
+
+#### `genAiToolAttrs(input)` — for tool call spans
+
+```ts
+const attrs = genAiToolAttrs({
+  system: "openai",
+  toolName: "get_weather",
+  model: "gpt-4o",                        // optional
+  toolDescription: "Fetch weather data",  // optional
+});
+
+await tracer.span("tool.execute", attrs, async () => {
+  return runTool(args);
+});
+```
+
+### Full example: agent span with nested LLM + tool spans
+
+```ts
+import { OTelTracer, genAiRequestAttrs, genAiResponseAttrs, genAiToolAttrs } from "@corelay/mesh-observe";
+
+const tracer = new OTelTracer({ name: "@corelay/mesh-core" });
+
+await tracer.span(
+  "agent.handle",
+  genAiRequestAttrs({ system: "openai", model: "gpt-4o", operationName: "chat" }),
+  async (agentCtx) => {
+    // LLM call
+    const response = await tracer.span(
+      "llm.chat",
+      genAiRequestAttrs({ system: "openai", model: "gpt-4o", operationName: "chat" }),
+      async (llmCtx) => {
+        const res = await llm.chat(messages);
+        llmCtx.setAttributes(genAiResponseAttrs({
+          inputTokens: res.usage.input,
+          outputTokens: res.usage.output,
+          finishReason: res.finishReason,
+        }));
+        return res;
+      },
+    );
+
+    // Tool call
+    if (response.toolCalls.length > 0) {
+      await tracer.span(
+        "tool.execute",
+        genAiToolAttrs({ system: "openai", toolName: response.toolCalls[0].name }),
+        async () => runTool(response.toolCalls[0]),
+      );
+    }
+
+    agentCtx.setAttributes(genAiResponseAttrs({
+      inputTokens: response.usage.input,
+      outputTokens: response.usage.output,
+    }));
+  },
+);
+```
+
 ## Installation
 
 ```bash
