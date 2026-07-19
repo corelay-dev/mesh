@@ -112,15 +112,19 @@ export const TaskSchema = z.object({
 });
 export type Task = z.infer<typeof TaskSchema>;
 
+/** Push notification config — url to deliver task updates to via webhook. */
+export const PushNotificationConfigSchema = z.object({
+  url: z.string(),
+  token: z.string().optional(),
+});
+export type PushNotificationConfig = z.infer<typeof PushNotificationConfigSchema>;
+
 export const TaskSendParamsSchema = z.object({
   id: z.string(),
   sessionId: z.string().optional(),
   message: A2AMessageSchema,
   acceptedOutputModes: z.array(z.string()).optional(),
-  pushNotification: z.object({
-    url: z.string(),
-    token: z.string().optional(),
-  }).optional(),
+  pushNotification: PushNotificationConfigSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 export type TaskSendParams = z.infer<typeof TaskSendParamsSchema>;
@@ -137,6 +141,53 @@ export const TaskCancelParamsSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 export type TaskCancelParams = z.infer<typeof TaskCancelParamsSchema>;
+
+/**
+ * tasks/sendSubscribe — identical to tasks/send but the server responds with
+ * an SSE stream of TaskStatusUpdateEvent and TaskArtifactUpdateEvent.
+ */
+export const TaskSendSubscribeParamsSchema = z.object({
+  id: z.string(),
+  sessionId: z.string().optional(),
+  message: A2AMessageSchema,
+  acceptedOutputModes: z.array(z.string()).optional(),
+  pushNotification: PushNotificationConfigSchema.optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+export type TaskSendSubscribeParams = z.infer<typeof TaskSendSubscribeParamsSchema>;
+
+/**
+ * tasks/resubscribe — re-subscribes to an existing task's SSE stream.
+ */
+export const TaskResubscribeParamsSchema = z.object({
+  id: z.string(),
+  metadata: z.record(z.unknown()).optional(),
+});
+export type TaskResubscribeParams = z.infer<typeof TaskResubscribeParamsSchema>;
+
+/** SSE event: task status changed */
+export const TaskStatusUpdateEventSchema = z.object({
+  type: z.literal("status"),
+  taskId: z.string(),
+  status: TaskStatusSchema,
+  final: z.boolean(),
+});
+export type TaskStatusUpdateEvent = z.infer<typeof TaskStatusUpdateEventSchema>;
+
+/** SSE event: new artifact chunk */
+export const TaskArtifactUpdateEventSchema = z.object({
+  type: z.literal("artifact"),
+  taskId: z.string(),
+  artifact: ArtifactSchema,
+});
+export type TaskArtifactUpdateEvent = z.infer<typeof TaskArtifactUpdateEventSchema>;
+
+/** Union of all streaming events */
+export const TaskStreamingEventSchema = z.discriminatedUnion("type", [
+  TaskStatusUpdateEventSchema,
+  TaskArtifactUpdateEventSchema,
+]);
+export type TaskStreamingEvent = z.infer<typeof TaskStreamingEventSchema>;
 
 export const JsonRpcRequestSchema = z.object({
   jsonrpc: z.literal("2.0"),
