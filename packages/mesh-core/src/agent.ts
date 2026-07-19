@@ -10,6 +10,10 @@ import type { ToolExecutor } from "./tool-executor.js";
 import type { ConversationMemory } from "./memory.js";
 import { ParallelToolExecutor } from "./parallel-tool-executor.js";
 import type { ContextManager } from "./context-manager.js";
+import type { LoopStrategy, StrategyContext, StrategyName } from "./strategies/types.js";
+import { reactStrategy } from "./strategies/react.js";
+import { planExecuteStrategy } from "./strategies/plan-execute.js";
+import { reflexionStrategy } from "./strategies/reflexion.js";
 
 export class CapabilityError extends Error {
   constructor(
@@ -54,6 +58,17 @@ export interface AgentOptions {
    * with summarisation of older turns via the injected context manager.
    */
   contextManager?: ContextManager;
+  /**
+   * Opt-in agent loop strategy. Controls how the LLM is called within
+   * each turn. Undefined = default reactive tool-calling loop (unchanged).
+   *
+   * - 'react': Interleave explicit reasoning/thought step before each action.
+   * - 'plan-execute': A planner produces an ordered plan, then an executor runs steps.
+   * - 'reflexion': After a candidate answer, run in-loop self-critique and optionally retry.
+   *
+   * A custom LoopStrategy instance can also be passed directly.
+   */
+  strategy?: StrategyName | LoopStrategy;
 }
 
 export class Agent implements Peer {
@@ -65,6 +80,7 @@ export class Agent implements Peer {
   private readonly maxHistoryMessages: number;
   private readonly parallelExecutor: ParallelToolExecutor | undefined;
   private readonly contextManager: ContextManager | undefined;
+  private readonly strategy: LoopStrategy | undefined;
 
   constructor(
     public readonly address: Address,
@@ -89,6 +105,9 @@ export class Agent implements Peer {
         : 5;
       this.parallelExecutor = new ParallelToolExecutor(this.toolExecutor, { concurrency });
     }
+
+    // Resolve strategy
+    this.strategy = resolveStrategy(options.strategy);
   }
 
   async start(): Promise<void> {
@@ -187,8 +206,24 @@ export class Agent implements Peer {
   /**
    * Calls the LLM in a loop, executing tool calls until the LLM produces
    * a final text response (finishReason !== "tool_calls") or max rounds exceeded.
+   * When a strategy is configured, delegates to the strategy's run method.
    */
   private async callWithTools(messages: LLMMessage[], traceId: string): Promise<string> {
+    // Delegate to strategy if one is configured
+    if (this.strategy) {
+      const strategyCtx: StrategyContext = {
+        llm: this.llm,
+        model: this.config.model,
+        maxTokens: this.config.maxResponseTokens,
+        tools: this.config.tools,
+        toolExecutor: this.toolExecutor,
+        maxToolRounds: this.maxToolRounds,
+        systemPrompt: this.config.prompt,
+      };
+      return this.strategy.run(messages, strategyCtx);
+    }
+
+    // Default reactive loop (unchanged behaviour)
     let currentMessages = [...messages];
     let rounds = 0;
 
@@ -273,5 +308,22 @@ export class Agent implements Peer {
       (c) => c.kind === "peer" && c.address === target,
     );
     if (!allowed) throw new CapabilityError(this.address, target);
+  }
+}
+
+function resolveStrategy(strategy: StrategyName | LoopStrategy | undefined): LoopStrategy | undefined {
+  if (strategy === undefined) return undefined;
+  if (typeof strategy === "object") return strategy;
+  switch (strategy) {
+    case "react":
+      return reactStrategy;
+    case "plan-execute":
+      return planExecuteStrategy;
+    case "reflexion":
+      return reflexionStrategy;
+    default: {
+      const _exhaustive: never = strategy;
+      throw new Error(`Unknown strategy: ${_exhaustive}`);
+    }
   }
 }
