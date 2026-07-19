@@ -1,0 +1,53 @@
+name: Release
+
+# Publish workspace packages to npm when a version tag is pushed.
+# Requires repo secret NPM_TOKEN (an npm automation token with publish
+# rights to the @corelay scope). Only packages whose version is not yet
+# on the registry are published, so re-running a tag is safe.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npx turbo run build
+
+      - name: Publish changed packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          for dir in packages/*/; do
+            [ -f "$dir/package.json" ] || continue
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            priv=$(node -p "require('./$dir/package.json').private === true")
+            if [ "$priv" = "true" ]; then
+              echo "skip (private): $name"
+              continue
+            fi
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "skip (already published): $name@$version"
+            else
+              echo "publishing $name@$version"
+              (cd "$dir" && npm publish --access public --provenance)
+            fi
+          done
