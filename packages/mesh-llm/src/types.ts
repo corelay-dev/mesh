@@ -1,10 +1,12 @@
 import type { LLMRequest, LLMResponse, TokenUsage, ToolCall } from "@corelay/mesh-core";
+import type { ZodType } from "zod";
 
 /**
  * Extended LLM request with opt-in features:
  * - Prompt caching
  * - Extended thinking / reasoning
  * - Streaming (via separate chatStream method)
+ * - Structured outputs (strict tool schemas + response format)
  */
 export interface LLMRequestExt extends LLMRequest {
   /** Opt-in: mark system prompt + tool definitions as cacheable prefix. */
@@ -16,6 +18,32 @@ export interface LLMRequestExt extends LLMRequest {
    * For OpenAI: maps to reasoning_effort ("low" | "medium" | "high").
    */
   thinking?: ThinkingConfig;
+
+  /**
+   * Opt-in: enable provider-enforced strict schemas for tool definitions.
+   * When true, OpenAI tools are sent with `strict: true` so the model's
+   * output is guaranteed to conform to the JSON Schema.
+   * For Anthropic, the input_schema is always passed (no strict mode available).
+   */
+  strictToolSchemas?: boolean;
+
+  /**
+   * Opt-in: structured response format for the final answer.
+   * Maps to OpenAI `response_format: { type: "json_schema", json_schema: ... }`.
+   * Ignored by providers that don't support structured response formats.
+   */
+  responseSchema?: ResponseSchemaConfig;
+}
+
+export interface ResponseSchemaConfig {
+  /** Name for the schema (required by OpenAI). */
+  name: string;
+  /** JSON Schema object describing the expected response format. */
+  schema: Record<string, unknown>;
+  /** Optional Zod schema — if provided, its JSON Schema is derived automatically. */
+  zodSchema?: ZodType;
+  /** Whether the schema is strict (OpenAI default: true). */
+  strict?: boolean;
 }
 
 export interface ThinkingConfig {

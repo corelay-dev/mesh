@@ -12,6 +12,7 @@ export {
   type StreamableLLMClient,
   type ThinkingConfig,
   type BudgetConfig,
+  type ResponseSchemaConfig,
   BudgetExceededError,
 } from "./types.js";
 
