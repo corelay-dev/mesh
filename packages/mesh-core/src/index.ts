@@ -38,4 +38,25 @@ export { type WorkflowRecorder } from "./workflow-recorder.js";
 export { run, type RunOptions, type RunResult } from "./run.js";
 export { canaryPeer, type CanaryConfig } from "./canary.js";
 
+// --- New exports: parallel tools, context compaction, dynamic peers ---
+export {
+  ParallelToolExecutor,
+  type ParallelToolExecutorOptions,
+} from "./parallel-tool-executor.js";
+export {
+  ContextManager,
+  type ContextManagerOptions,
+  type ContextSummariser,
+  type CompactionEvent,
+  type CompactionListener,
+} from "./context-manager.js";
+export {
+  DynamicPeerRegistry,
+  DynamicPeerNotFoundError,
+  spawnPeer,
+  type SpawnPeerOptions,
+  type PeerEvent,
+  type PeerEventListener,
+} from "./dynamic-peer-registry.js";
+
 export const version = "0.1.0";

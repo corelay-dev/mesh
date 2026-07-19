@@ -8,6 +8,8 @@ import type { Peer } from "./peer.js";
 import type { PeerRegistry } from "./peer-registry.js";
 import type { ToolExecutor } from "./tool-executor.js";
 import type { ConversationMemory } from "./memory.js";
+import { ParallelToolExecutor } from "./parallel-tool-executor.js";
+import type { ContextManager } from "./context-manager.js";
 
 export class CapabilityError extends Error {
   constructor(
@@ -41,6 +43,17 @@ export interface AgentOptions {
   maxToolRounds?: number;
   /** Max conversation history messages to include. Default 20. */
   maxHistoryMessages?: number;
+  /**
+   * Enable parallel tool execution with bounded concurrency.
+   * Set to `true` for default concurrency (5), or a number for custom.
+   * Default: false (sequential execution, preserving existing behaviour).
+   */
+  parallelToolExecution?: boolean | number;
+  /**
+   * Opt-in context compaction. When provided, replaces hard truncation
+   * with summarisation of older turns via the injected context manager.
+   */
+  contextManager?: ContextManager;
 }
 
 export class Agent implements Peer {
@@ -50,6 +63,8 @@ export class Agent implements Peer {
   private readonly memory: ConversationMemory | undefined;
   private readonly maxToolRounds: number;
   private readonly maxHistoryMessages: number;
+  private readonly parallelExecutor: ParallelToolExecutor | undefined;
+  private readonly contextManager: ContextManager | undefined;
 
   constructor(
     public readonly address: Address,
@@ -65,6 +80,15 @@ export class Agent implements Peer {
     this.memory = options.memory;
     this.maxToolRounds = options.maxToolRounds ?? 10;
     this.maxHistoryMessages = options.maxHistoryMessages ?? 20;
+    this.contextManager = options.contextManager;
+
+    // Set up parallel tool execution if enabled
+    if (options.parallelToolExecution && this.toolExecutor) {
+      const concurrency = typeof options.parallelToolExecution === "number"
+        ? options.parallelToolExecution
+        : 5;
+      this.parallelExecutor = new ParallelToolExecutor(this.toolExecutor, { concurrency });
+    }
   }
 
   async start(): Promise<void> {
@@ -152,6 +176,11 @@ export class Agent implements Peer {
     // Add the current user message
     messages.push({ role: "user", content: message.content });
 
+    // Apply context compaction if enabled (replaces hard truncation)
+    if (this.contextManager) {
+      return this.contextManager.compact(message.traceId, messages);
+    }
+
     return messages;
   }
 
@@ -194,25 +223,42 @@ export class Agent implements Peer {
         return response.content;
       }
 
-      // Execute tool calls
+      // Execute tool calls (parallel or sequential)
       currentMessages.push({ role: "assistant", content: response.content, toolCalls: response.toolCalls });
 
-      for (const call of response.toolCalls) {
-        const result = await this.tracer.span(
-          "tool.execute",
-          { "tool.name": call.name, "tool.call_id": call.id },
-          async (toolCtx) => {
-            const r = await this.toolExecutor!.execute(call);
-            toolCtx.setAttribute("tool.error", r.error ?? false);
-            return r;
-          },
+      if (this.parallelExecutor) {
+        // Parallel execution — bounded concurrency, ordered results
+        const results = await this.tracer.span(
+          "tool.executeAll",
+          { "tool.count": response.toolCalls.length },
+          () => this.parallelExecutor!.executeAll(response.toolCalls),
         );
+        for (const result of results) {
+          currentMessages.push({
+            role: "tool",
+            content: result.content,
+            toolCallId: result.toolCallId,
+          });
+        }
+      } else {
+        // Sequential execution (default, preserves existing behaviour)
+        for (const call of response.toolCalls) {
+          const result = await this.tracer.span(
+            "tool.execute",
+            { "tool.name": call.name, "tool.call_id": call.id },
+            async (toolCtx) => {
+              const r = await this.toolExecutor!.execute(call);
+              toolCtx.setAttribute("tool.error", r.error ?? false);
+              return r;
+            },
+          );
 
-        currentMessages.push({
-          role: "tool",
-          content: result.content,
-          toolCallId: result.toolCallId,
-        });
+          currentMessages.push({
+            role: "tool",
+            content: result.content,
+            toolCallId: result.toolCallId,
+          });
+        }
       }
 
       rounds++;
