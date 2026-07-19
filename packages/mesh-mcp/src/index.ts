@@ -1,4 +1,5 @@
 export { McpServer, type McpServerConfig } from "./server.js";
+export { McpClient, McpClientError, type McpClientConfig, type RemoteTool } from "./client.js";
 export { stdioTransport } from "./stdio.js";
 export { mcpToolFromAgent, type MeshAgentToolConfig } from "./adapter.js";
 export {
