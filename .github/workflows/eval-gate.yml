@@ -1,0 +1,49 @@
+name: Eval Gate
+
+on:
+  pull_request:
+    paths:
+      - "packages/mesh-eval/**"
+  push:
+    branches: [main]
+    paths:
+      - "packages/mesh-eval/**"
+  workflow_dispatch:
+
+jobs:
+  eval-gate:
+    name: Run eval suites
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/mesh-eval
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+        working-directory: .
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Run eval suites (mock judge)
+        run: |
+          node --import tsx src/cli.ts run fixtures/suites/smoke.json --output-dir eval-results
+        env:
+          NODE_ENV: ci
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: packages/mesh-eval/eval-results/
+          retention-days: 30
