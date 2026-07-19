@@ -8,7 +8,7 @@ import {
   type LLMRequest,
   type LLMResponse,
 } from "@corelay/mesh-core";
-import { createA2AServer, type A2AHttpRequest } from "../src/index.js";
+import { createA2AServer, type A2AHttpRequest, type A2AHttpResponse } from "../src/index.js";
 import type { AgentCard, A2AJsonRpcResponse, Task } from "../src/index.js";
 
 class EchoLLM implements LLMClient {

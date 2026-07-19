@@ -3,8 +3,9 @@ import type {
   AgentCard,
   Task,
   A2AJsonRpcResponse,
+  TaskStreamingEvent,
 } from "./schemas.js";
-import { AgentCardSchema } from "./schemas.js";
+import { AgentCardSchema, TaskStreamingEventSchema } from "./schemas.js";
 
 /**
  * HTTP transport abstraction for the A2A client.
@@ -23,6 +24,8 @@ export interface HttpFetchInit {
 export interface HttpFetchResponse {
   status: number;
   json(): Promise<unknown>;
+  /** For SSE streaming responses — returns the body as a ReadableStream of text chunks. */
+  body?: AsyncIterable<string>;
 }
 
 export interface A2AClientConfig {
@@ -42,6 +45,9 @@ export interface A2AClientConfig {
  * When a Mesh agent sends a message to this Peer, it translates to an A2A
  * tasks/send JSON-RPC call to the remote agent. The reply (task result) is
  * sent back as a message to the sender via the provided reply callback.
+ *
+ * Also supports streaming via `sendSubscribe` and `resubscribe` which return
+ * AsyncIterables of TaskStreamingEvent.
  */
 export class A2AClient implements Peer {
   readonly address: Address;
@@ -145,6 +151,76 @@ export class A2AClient implements Peer {
   }
 
   /**
+   * Subscribe to a task via tasks/sendSubscribe — starts execution and returns
+   * an AsyncIterable of validated streaming events (status updates + artifacts).
+   */
+  async *sendSubscribe(params: {
+    id: string;
+    sessionId?: string;
+    message: { role: "user"; parts: Array<{ type: "text"; text: string }> };
+    pushNotification?: { url: string; token?: string };
+    metadata?: Record<string, unknown>;
+  }): AsyncIterable<TaskStreamingEvent> {
+    const rpcRequest = {
+      jsonrpc: "2.0" as const,
+      id: params.id,
+      method: "tasks/sendSubscribe",
+      params,
+    };
+
+    const response = await this.transport.fetch(`${this.baseUrl}/`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "accept": "text/event-stream",
+      },
+      body: JSON.stringify(rpcRequest),
+    });
+
+    if (response.status !== 200 || !response.body) {
+      const body = await response.json() as A2AJsonRpcResponse;
+      throw new A2AClientError(
+        "STREAM_FAILED",
+        `A2A tasks/sendSubscribe failed: ${body.error?.message ?? `HTTP ${response.status}`}`,
+      );
+    }
+
+    yield* parseSseStream(response.body);
+  }
+
+  /**
+   * Re-subscribe to an existing task's event stream via tasks/resubscribe.
+   * Returns an AsyncIterable of validated streaming events.
+   */
+  async *resubscribe(taskId: string, metadata?: Record<string, unknown>): AsyncIterable<TaskStreamingEvent> {
+    const rpcRequest = {
+      jsonrpc: "2.0" as const,
+      id: taskId,
+      method: "tasks/resubscribe",
+      params: { id: taskId, metadata },
+    };
+
+    const response = await this.transport.fetch(`${this.baseUrl}/`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "accept": "text/event-stream",
+      },
+      body: JSON.stringify(rpcRequest),
+    });
+
+    if (response.status !== 200 || !response.body) {
+      const body = await response.json() as A2AJsonRpcResponse;
+      throw new A2AClientError(
+        "RESUBSCRIBE_FAILED",
+        `A2A tasks/resubscribe failed: ${body.error?.message ?? `HTTP ${response.status}`}`,
+      );
+    }
+
+    yield* parseSseStream(response.body);
+  }
+
+  /**
    * Query a task's status from the remote A2A agent.
    */
   async getTask(taskId: string): Promise<Task> {
@@ -202,6 +278,46 @@ export class A2AClient implements Peer {
       throw new A2AClientError("EMPTY_RESPONSE", "A2A tasks/cancel returned no result");
     }
     return body.result;
+  }
+}
+
+/**
+ * Parse an SSE text stream into validated TaskStreamingEvents.
+ * Each SSE frame is "data: {json}\n\n". We parse and validate each.
+ */
+async function* parseSseStream(stream: AsyncIterable<string>): AsyncGenerator<TaskStreamingEvent> {
+  let buffer = "";
+
+  for await (const chunk of stream) {
+    buffer += chunk;
+
+    // Process complete SSE frames (terminated by double newline)
+    while (true) {
+      const frameEnd = buffer.indexOf("\n\n");
+      if (frameEnd === -1) break;
+
+      const frame = buffer.slice(0, frameEnd);
+      buffer = buffer.slice(frameEnd + 2);
+
+      // Extract data lines from the frame
+      const dataLines = frame
+        .split("\n")
+        .filter((line) => line.startsWith("data: "))
+        .map((line) => line.slice(6));
+
+      if (dataLines.length === 0) continue;
+
+      const jsonStr = dataLines.join("");
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const validated = TaskStreamingEventSchema.safeParse(parsed);
+        if (validated.success) {
+          yield validated.data;
+        }
+      } catch {
+        // Skip malformed SSE frames
+      }
+    }
   }
 }
 
