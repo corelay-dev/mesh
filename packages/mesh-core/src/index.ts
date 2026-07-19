@@ -25,7 +25,7 @@ export {
 } from "./llm.js";
 export { type AgentConfig } from "./agent-config.js";
 export { Agent, CapabilityError, type AgentOptions, type ResponseReviewer } from "./agent.js";
-export { ToolRegistry, type ToolExecutor } from "./tool-executor.js";
+export { ToolRegistry, type ToolExecutor, type ToolHandler, type ToolRegistration } from "./tool-executor.js";
 export { MemoryConversationBuffer, type ConversationMemory } from "./memory.js";
 export {
   type Workflow,

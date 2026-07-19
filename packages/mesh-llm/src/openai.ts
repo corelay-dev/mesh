@@ -12,6 +12,7 @@ import type {
   StreamableLLMClient,
   TokenUsageExt,
   BudgetConfig,
+  ResponseSchemaConfig,
 } from "./types.js";
 import { BudgetExceededError } from "./types.js";
 import { computeCost, BudgetTracker, type ModelPricing } from "./pricing.js";
@@ -234,14 +235,28 @@ export class OpenAIClient implements LLMClient, StreamableLLMClient {
     };
 
     if (request.tools?.length) {
+      const strict = request.strictToolSchemas === true;
       params.tools = request.tools.map((t) => ({
         type: "function" as const,
         function: {
           name: t.name,
           description: t.description,
           parameters: t.parameters,
+          ...(strict && { strict: true }),
         },
       }));
+    }
+
+    // Structured response format (OpenAI json_schema response_format)
+    if (request.responseSchema) {
+      params.response_format = {
+        type: "json_schema",
+        json_schema: {
+          name: request.responseSchema.name,
+          schema: request.responseSchema.schema,
+          strict: request.responseSchema.strict ?? true,
+        },
+      };
     }
 
     // Reasoning/extended thinking for o-series models

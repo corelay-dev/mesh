@@ -1,3 +1,5 @@
+import type { ZodType } from "zod";
+
 /**
  * A Tool is a named function an Agent can invoke to take action in the world
  * or fetch information.
@@ -10,6 +12,14 @@ export interface ToolDefinition {
   description: string;
   /** JSON Schema object describing the tool's arguments. */
   parameters: Record<string, unknown>;
+  /**
+   * Optional Zod schema for runtime validation of tool arguments.
+   * When present, the tool executor validates model-generated arguments
+   * before execution, returning a typed error on validation failure.
+   * The existing `parameters` JSON Schema field remains the source of truth
+   * for LLM-facing schema; this is for runtime enforcement only.
+   */
+  schema?: ZodType;
 }
 
 /**
