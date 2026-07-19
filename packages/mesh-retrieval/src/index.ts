@@ -47,3 +47,8 @@ export {
   type ScorerRerankerConfig,
   type RerankedRetrieverConfig,
 } from "./reranker.js";
+export {
+  RetrieverMemoryStore,
+  type RetrieverMemoryStoreConfig,
+  type MemoryEntryWriter,
+} from "./retriever-memory-store.js";

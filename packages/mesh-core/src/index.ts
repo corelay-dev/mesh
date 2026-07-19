@@ -39,6 +39,14 @@ export {
 export { ToolRegistry, type ToolExecutor, type ToolHandler, type ToolRegistration } from "./tool-executor.js";
 export { MemoryConversationBuffer, type ConversationMemory } from "./memory.js";
 export {
+  InMemoryMemoryStore,
+  type MemoryStore,
+  type MemoryEntry,
+  type MemoryEntryKind,
+  type MemoryRecall,
+  type MemoryRetrieveOptions,
+} from "./memory-store.js";
+export {
   type Workflow,
   type WorkflowEvent,
   type WorkflowStatus,

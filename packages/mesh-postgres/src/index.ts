@@ -15,3 +15,7 @@ export {
   type SweepStaleWorkflowsConfig,
   type SweepStaleWorkflowsResult,
 } from "./sweeper.js";
+export {
+  PostgresConversationMemory,
+  type PostgresConversationMemoryConfig,
+} from "./conversation-memory.js";

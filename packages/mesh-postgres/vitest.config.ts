@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: process.env.SKIP_INTEGRATION
-      ? ["test/smoke.test.ts"]
+      ? ["test/smoke.test.ts", "test/conversation-memory.test.ts"]
       : ["test/**/*.test.ts"],
     environment: "node",
     testTimeout: 120_000,
