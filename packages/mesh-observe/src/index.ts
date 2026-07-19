@@ -32,3 +32,17 @@ export {
   type GenAiResponseInput,
   type GenAiToolInput,
 } from "./gen-ai-attrs.js";
+export {
+  noopMeter,
+  type Counter,
+  type Histogram,
+  type InstrumentOptions,
+  type Meter,
+  type MetricAttributes,
+  type UpDownCounter,
+} from "./meter.js";
+export { OTelMeter, otelMetrics, type OTelMeterConfig } from "./otel-meter.js";
+export {
+  createAgentMetrics,
+  type AgentMetrics,
+} from "./agent-metrics.js";
