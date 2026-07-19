@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-llm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "LLM router and provider clients for Corelay Mesh.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -32,7 +32,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
+    "@corelay/mesh-core": "^0.4.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.5"
   },

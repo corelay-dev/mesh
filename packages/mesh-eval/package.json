@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-eval",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Corelay Mesh eval pipeline — test suites, LLM-judged scoring, deploy-gate thresholds.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -45,7 +45,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0"
+    "@corelay/mesh-core": "^0.4.0"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

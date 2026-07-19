@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-analytics",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Analytics, reflection, and experimentation for Corelay Mesh campaigns.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -30,9 +30,9 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
-    "@corelay/mesh-llm": "0.1.2",
-    "@corelay/mesh-observe": "0.1.0",
+    "@corelay/mesh-core": "^0.4.0",
+    "@corelay/mesh-llm": "^0.3.0",
+    "@corelay/mesh-observe": "^0.4.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

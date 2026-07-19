@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-compose",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Corelay Compose — authoring agent that drafts AgentConfigs from intent. Always reviewed by a human before save.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -33,9 +33,9 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
-    "@corelay/mesh-coordination": "0.2.0",
-    "@corelay/mesh-eval": "0.2.0"
+    "@corelay/mesh-core": "^0.4.0",
+    "@corelay/mesh-coordination": "^0.2.1",
+    "@corelay/mesh-eval": "^0.3.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

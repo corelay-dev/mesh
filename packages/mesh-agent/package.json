@@ -25,7 +25,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "description": "Corelay Mesh Agent \u2014 zero-dependency telemetry SDK. Reports health, errors, LLM usage, and HTTP metrics to Corelay Command.",
+  "description": "Corelay Mesh Agent — zero-dependency telemetry SDK. Reports health, errors, LLM usage, and HTTP metrics to Corelay Command.",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-retrieval",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agentic RAG retrieval for Corelay Mesh — vector search, embeddings, critic-judged relevance, grounding eval.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -33,9 +33,9 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
-    "@corelay/mesh-coordination": "0.2.0",
-    "@corelay/mesh-eval": "0.2.0"
+    "@corelay/mesh-core": "^0.4.0",
+    "@corelay/mesh-coordination": "^0.2.1",
+    "@corelay/mesh-eval": "^0.3.0"
   },
   "peerDependencies": {
     "pg": ">=8.13.0"

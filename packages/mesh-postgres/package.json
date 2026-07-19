@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-postgres",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Postgres durability for Corelay Mesh: durable workflow store and Inbox.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -33,7 +33,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
+    "@corelay/mesh-core": "^0.4.0",
     "pg": "^8.13.0"
   },
   "devDependencies": {

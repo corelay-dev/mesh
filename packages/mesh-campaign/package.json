@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-campaign",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Campaign domain agents for Corelay Mesh — narrative, intel, strategy, compliance, warroom.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -30,10 +30,10 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0",
-    "@corelay/mesh-coordination": "0.2.0",
-    "@corelay/mesh-llm": "0.1.2",
-    "@corelay/mesh-observe": "0.1.0",
+    "@corelay/mesh-core": "^0.4.0",
+    "@corelay/mesh-coordination": "^0.2.1",
+    "@corelay/mesh-llm": "^0.3.0",
+    "@corelay/mesh-observe": "^0.4.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

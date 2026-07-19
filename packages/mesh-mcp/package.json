@@ -1,6 +1,6 @@
 {
   "name": "@corelay/mesh-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Model Context Protocol server for Corelay Mesh — exposes agents as MCP tools over stdio.",
   "license": "MIT",
   "author": "Corelay Ltd",
@@ -33,7 +33,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@corelay/mesh-core": "0.3.0"
+    "@corelay/mesh-core": "^0.4.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

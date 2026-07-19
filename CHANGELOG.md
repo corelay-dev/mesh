@@ -8,6 +8,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
+#### 2026 agentic modernization
+
+- **@corelay/mesh-llm v0.3** — Prompt caching (Anthropic `cache_control`, OpenAI cached input, Bedrock), USD cost tracking with optional budget caps, streaming (`chatStream`), extended-thinking / `reasoning_effort` support, and provider-enforced structured outputs (strict JSON schema).
+- **@corelay/mesh-core v0.4** — Parallel tool execution, context compaction + tool-result clearing, dynamic runtime peer registration/spawning, Zod tool-argument validation, opt-in **ReAct / Plan-and-Execute / Reflexion** loop strategies, and a `MemoryStore` interface.
+- **@corelay/mesh-retrieval v0.2** — Hybrid search (BM25 + Reciprocal Rank Fusion), pluggable reranker, and a retriever-backed semantic `MemoryStore` adapter.
+- **@corelay/mesh-mcp v0.3** — MCP **client** to consume external MCP tool servers (complements the existing server).
+- **@corelay/mesh-a2a v0.2** — Streaming (`tasks/sendSubscribe`, `tasks/resubscribe`) and push notifications.
+- **@corelay/mesh-observe v0.4** — OpenTelemetry **metrics** layer (counters + histograms) alongside tracing, using GenAI semantic-convention attributes.
+- **@corelay/mesh-eval v0.3** — CLI runner + GitHub Actions eval-gate workflow (mock judge so CI passes without API keys).
+- **@corelay/mesh-postgres v0.3** — Durable Postgres-backed `ConversationMemory` for cross-session history.
+
 - **@corelay/mesh-compose v0.3** — Critic-wrapped authoring via `createCriticAuthor()`. Drafts are automatically challenged by the Critic primitive before the reviewer sees them.
 - **@corelay/mesh-eval v0.2** — `compareReports()` for regression detection between eval runs. Cases matched by id; removed cases count as regressions; deploy decision requires zero regressions + candidate gate passed.
 - **@corelay/mesh-mcp v0.1** — MCP server exposing Mesh agents as tools for Claude Desktop / Cursor / ChatGPT. `McpServer` handles initialize, tools/list, tools/call, ping. `mcpToolFromAgent()` wraps any Agent as an MCP tool. `stdioTransport()` for the wire protocol. Zero external dependencies.
@@ -27,7 +38,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Stats
 
-- **9 packages**, **232+ tests**, CI green on every push.
+- **17 packages**, modernized to 2026 agentic standards: prompt caching, streaming, parallel tools, structured outputs, reasoning strategies (ReAct/Plan-Execute/Reflexion), context engineering, long-term memory, hybrid RAG, MCP client, A2A streaming, and OTel metrics.
 - **5 coordination patterns**: Pipeline, Critic, Debate, Hierarchy, Human-in-the-Loop.
 
 ---
