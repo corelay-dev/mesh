@@ -28,3 +28,22 @@ export {
   type ContextPrecisionResult,
   type ChunkRelevanceVerdict,
 } from "./grounding-eval.js";
+export {
+  BM25Retriever,
+  PgKeywordRetriever,
+  type KeywordDocument,
+  type BM25RetrieverConfig,
+  type PgKeywordRetrieverConfig,
+} from "./keyword-retriever.js";
+export {
+  HybridRetriever,
+  type HybridRetrieverConfig,
+} from "./hybrid-retriever.js";
+export {
+  ScorerReranker,
+  RerankedRetriever,
+  type Reranker,
+  type RerankerScorer,
+  type ScorerRerankerConfig,
+  type RerankedRetrieverConfig,
+} from "./reranker.js";
